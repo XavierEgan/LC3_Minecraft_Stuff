@@ -1,3 +1,6 @@
+; laser -a LC3/Circles/turd.asm && lc3 LC3/Circles/turd.obj
+
+; dont try this one (it wont work probably)
 ; laser -a My_Stuff/LC3/Circles/turd.asm && lc3 My_Stuff/LC3/Circles/turd.obj
 
 .ORIG x3000

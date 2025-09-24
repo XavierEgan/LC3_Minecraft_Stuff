@@ -1,4 +1,7 @@
-; laser -a My_Stuff/LC3/Circles/random_torus.asm && lc3 My_Stuff/LC3/Circles/random_torus.obj
+; laser -a LC3/Circles/torus.asm && lc3 LC3/Circles/torus.obj
+
+; dont try this one (it wont work probably)
+; laser -a My_Stuff/LC3/Circles/torus.asm && lc3 My_Stuff/LC3/Circles/torus.obj
 
 .ORIG x3000
 

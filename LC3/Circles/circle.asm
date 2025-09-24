@@ -1,5 +1,7 @@
-; laser -a My_Stuff/LC3/Circles/circle.asm && lc3 My_Stuff/LC3/Circles/circle.obj
+; laser -a LC3/Circles/circle.asm && lc3 LC3/Circles/circle.obj
 
+; dont try this one (it wont work probably)
+; laser -a My_Stuff/LC3/Circles/circle.asm && lc3 My_Stuff/LC3/Circles/circle.obj
 .ORIG x3000
 
 JSR CALC_RADII_SQUARED

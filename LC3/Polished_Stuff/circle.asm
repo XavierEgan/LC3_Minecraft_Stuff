@@ -1,7 +1,7 @@
-; laser -a LC3/Circles/random_circle.asm && lc3 LC3/Circles/random_circle.obj
+; laser -a LC3/Polished_Stuff/circle.asm && lc3 LC3/Polished_Stuff/circle.obj
 
 ; dont try this one (it wont work probably)
-; laser -a My_Stuff/LC3/Circles/random_circle.asm && lc3 My_Stuff/LC3/Circles/random_circle.obj
+; laser -a My_Stuff/LC3/Polished_Stuff/circle.asm && lc3 My_Stuff/LC3/Polished_Stuff/circle.obj
 
 .ORIG x3000
 
@@ -42,8 +42,13 @@ LOOPX .FILL #0
             LD R0 PLACE_BLOCK_FLAG
             ADD R0 R0 #0
             BRz DONT_PLACE_BLOCK
-                JSR GET_RANDOM_BLOCK
-                LD R3 RANDOM_BLOCK
+                LD R3 BLOCK_TYPE
+                LD R4 USE_RANDOM_BLOCKS_FLAG
+                ADD R4 R4 #0
+                BRz DONT_USE_RANDOM_BLOCK
+                    JSR GET_RANDOM_BLOCK
+                    LD R3 RANDOM_BLOCK
+                DONT_USE_RANDOM_BLOCK
 
                 LD R0 P_X
                 LD R1 P_Y
@@ -83,7 +88,13 @@ BRzp LOOPX
 
 HALT
 
-RADII .FILL #10
+RADII .FILL #10 ; radii of the circle
+BLOCK_TYPE .FILL #1 ; type of block to use if its not random
+BLOCK_RAND_BITMASK .FILL x00FF ; will use blocks from 0 to BLOCK_RAND_BITMASK
+USE_RANDOM_BLOCKS_FLAG .FILL #0 ; if we randomise each block placed
+EXCLUDE_WATER_AND_LAVA_FLAG .FILL #0 ; this removes water and lava, however it makes 12, 13, 14 and 15 twice as likely as any other block (since it changes water/lava into these)
+
+
 RADII_2 .FILL #0
 RADII_SQUARED .FILL #0
 X_ .FILL #0
@@ -92,7 +103,6 @@ Z_ .FILL #0
 P_X .FILL #0
 P_Y .FILL #0
 P_Z .FILL #0
-BLOCK_RAND_BITMASK .FILL x00FF
 RANDOM_BLOCK .FILL #0
 
 Y_OFFSET .FILL #100
@@ -257,44 +267,47 @@ GET_RANDOM_BLOCK .FILL #0
     LD R4 BLOCK_RAND_BITMASK
     AND R3 R3 R4
 
-    ; make sure its not flowing water
-    ADD R4 R3 #-8
-    BRnp NOT_FLOWING_WATER
-        ADD R3 R3 #4
-        ST R3 RANDOM_BLOCK
-        LD R7 GRB_RET
-        RET
-    NOT_FLOWING_WATER .FILL #0
+    LD R4 EXCLUDE_WATER_AND_LAVA_FLAG
+    ADD R4 R4 #0
+    BRz DONT_EXCLUDE_WATER_AND_LAVA
+        ; make sure its not flowing water
+        ADD R4 R3 #-8
+        BRnp NOT_FLOWING_WATER
+            ADD R3 R3 #4
+            ST R3 RANDOM_BLOCK
+            LD R7 GRB_RET
+            RET
+        NOT_FLOWING_WATER .FILL #0
 
-    ; make sure its not water
-    ADD R4 R3 #-9
-    BRnp NOT_WATER
-        ADD R3 R3 #4
-        ST R3 RANDOM_BLOCK
-        LD R7 GRB_RET
-        RET
-    NOT_WATER .FILL #0
+        ; make sure its not water
+        ADD R4 R3 #-9
+        BRnp NOT_WATER
+            ADD R3 R3 #4
+            ST R3 RANDOM_BLOCK
+            LD R7 GRB_RET
+            RET
+        NOT_WATER .FILL #0
 
-    ; make sure its not flowing lava
-    ADD R4 R3 #-10
-    BRnp NOT_FLOWING_LAVA
-        ADD R3 R3 #4
-        ST R3 RANDOM_BLOCK
-        LD R7 GRB_RET
-        RET
-    NOT_FLOWING_LAVA .FILL #0
+        ; make sure its not flowing lava
+        ADD R4 R3 #-10
+        BRnp NOT_FLOWING_LAVA
+            ADD R3 R3 #4
+            ST R3 RANDOM_BLOCK
+            LD R7 GRB_RET
+            RET
+        NOT_FLOWING_LAVA .FILL #0
 
-    ; make sure its not lava
-    ADD R4 R3 #-11
-    BRnp NOT_LAVA
-        ADD R3 R3 #4
-        ST R3 RANDOM_BLOCK
-        LD R7 GRB_RET
-        RET
-    NOT_LAVA .FILL #0
+        ; make sure its not lava
+        ADD R4 R3 #-11
+        BRnp NOT_LAVA
+            ADD R3 R3 #4
+            ST R3 RANDOM_BLOCK
+            LD R7 GRB_RET
+            RET
+        NOT_LAVA .FILL #0
+    DONT_EXCLUDE_WATER_AND_LAVA
 
     ST R3 RANDOM_BLOCK
-    
 
     LD R7 GRB_RET
 RET

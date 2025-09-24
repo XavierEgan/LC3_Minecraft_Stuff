@@ -1,7 +1,7 @@
-; laser -a LC3/Circles/random_torus.asm && lc3 LC3/Circles/random_torus.obj
+; laser -a LC3/Polished_Stuff/torus.asm && lc3 LC3/Polished_Stuff/torus.obj
 
 ; dont try this one (it wont work probably)
-; laser -a My_Stuff/LC3/Circles/random_torus.asm && lc3 My_Stuff/LC3/Circles/random_torus.obj
+; laser -a My_Stuff/LC3/Polished_Stuff/torus.asm && lc3 My_Stuff/LC3/Polished_Stuff/torus.obj
 
 .ORIG x3000
 
@@ -88,8 +88,14 @@ BRzp LOOPXD
 
 HALT
 
+; control flags
+BLOCK_TYPE .FILL #1 ; the block type to use if its not random
+USE_RANDOM_BLOCKS_FLAG .FILL #1 ; if we randomise each block placed
+BLOCK_RAND_BITMASK .FILL x00FF ; will use blocks from 0 to BLOCK_RAND_BITMASK
+EXCLUDE_WATER_AND_LAVA_FLAG .FILL #1 ; this removes water and lava, however it makes 12, 13, 14 and 15 twice as likely as any other block (since it changes water/lava into these)
 SPHERE_RADII .FILL #4
 TORUS_RADII .FILL #8
+
 RADII_2 .FILL #0
 RADII_SQUARED .FILL #0
 TORUS_RADII_SQUARED .FILL #0
@@ -104,8 +110,7 @@ P_Z .FILL #0
 C_X .FILL #0
 C_Y .FILL #0
 C_Z .FILL #0
-BLOCK_TYPE .FILL #1
-BLOCK_RAND_BITMASK .FILL x00FF
+
 RANDOM_BLOCK .FILL #0
 
 X_CBRS .FILL #0
@@ -167,9 +172,17 @@ PLACE_SPHERE .FILL #0
                 LD R0 PLACE_BLOCK_FLAG
                 ADD R0 R0 #0
                 BRz DONT_PLACE_BLOCK
-                    JSR GET_RANDOM_BLOCK
+                    ; do the normal block first and let the random block override if its active
+                    LD R3 BLOCK_TYPE
 
-                    LD R3 RANDOM_BLOCK
+                    LD R0 USE_RANDOM_BLOCKS_FLAG
+                    ADD R0 R0 #0
+                    BRz NORMAL_BLOCK
+                        JSR GET_RANDOM_BLOCK
+
+                        LD R3 RANDOM_BLOCK
+                    NORMAL_BLOCK
+
 
                     LD R0 P_X
                     LD R4 C_X
@@ -218,7 +231,6 @@ RET
 
 SHOULD_PLACE_BLOCK .FILL #0
     ST R7 SPB_RET
-
 
     JSR CALC_BLOCK_RADII_SQUARED
     LD R1 BLOCK_RADII_SQUARED
@@ -360,41 +372,46 @@ GET_RANDOM_BLOCK .FILL #0
     LD R4 BLOCK_RAND_BITMASK
     AND R3 R3 R4
 
-    ; make sure its not flowing water
-    ADD R4 R3 #-8
-    BRnp NOT_FLOWING_WATER
-        ADD R3 R3 #4
-        ST R3 RANDOM_BLOCK
-        LD R7 GRB_RET
-        RET
-    NOT_FLOWING_WATER .FILL #0
+    LD R4 EXCLUDE_WATER_AND_LAVA_FLAG
+    ADD R4 R4 #0
+    BRz DONT_EXCLUDE_WATER_AND_LAVA
+        ; make sure its not flowing water
+        ADD R4 R3 #-8
+        BRnp NOT_FLOWING_WATER
+            ADD R3 R3 #4
+            ST R3 RANDOM_BLOCK
+            LD R7 GRB_RET
+            RET
+        NOT_FLOWING_WATER .FILL #0
 
-    ; make sure its not water
-    ADD R4 R3 #-9
-    BRnp NOT_WATER
-        ADD R3 R3 #4
-        ST R3 RANDOM_BLOCK
-        LD R7 GRB_RET
-        RET
-    NOT_WATER .FILL #0
+        ; make sure its not water
+        ADD R4 R3 #-9
+        BRnp NOT_WATER
+            ADD R3 R3 #4
+            ST R3 RANDOM_BLOCK
+            LD R7 GRB_RET
+            RET
+        NOT_WATER .FILL #0
 
-    ; make sure its not flowing lava
-    ADD R4 R3 #-10
-    BRnp NOT_FLOWING_LAVA
-        ADD R3 R3 #4
-        ST R3 RANDOM_BLOCK
-        LD R7 GRB_RET
-        RET
-    NOT_FLOWING_LAVA .FILL #0
+        ; make sure its not flowing lava
+        ADD R4 R3 #-10
+        BRnp NOT_FLOWING_LAVA
+            ADD R3 R3 #4
+            ST R3 RANDOM_BLOCK
+            LD R7 GRB_RET
+            RET
+        NOT_FLOWING_LAVA .FILL #0
 
-    ; make sure its not lava
-    ADD R4 R3 #-11
-    BRnp NOT_LAVA
-        ADD R3 R3 #4
-        ST R3 RANDOM_BLOCK
-        LD R7 GRB_RET
-        RET
-    NOT_LAVA .FILL #0
+        ; make sure its not lava
+        ADD R4 R3 #-11
+        BRnp NOT_LAVA
+            ADD R3 R3 #4
+            ST R3 RANDOM_BLOCK
+            LD R7 GRB_RET
+            RET
+        NOT_LAVA .FILL #0
+    
+    DONT_EXCLUDE_WATER_AND_LAVA
 
     ST R3 RANDOM_BLOCK
     
