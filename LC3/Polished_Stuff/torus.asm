@@ -53,15 +53,16 @@ LOOPXD .FILL #0
             NOT R0 R0
             ADD R0 R0 #1
         DONT_NEG_1
-        ; we want -2 <= abs(tr - br) <= 2
-        ; abs(tr - br) - 2 <= 0
-        ; abs(tr - br) + 2 >= 0
+        ; we want abs(tr - br) <= TORUS_SENSITIVITY
+        ; abs(tr - br) - TORUS_SENSITIVITY <= 0
 
-        ADD R1 R0 #-4
+        LD R2 TORUS_SENSITIVITY
+
+        NOT R2 R2
+        ADD R2 R2 #1
+
+        ADD R1 R0 R2
         BRp DONT_PLACE_SPHERE
-
-        ADD R1 R0 #4
-        BRn DONT_PLACE_SPHERE
             LD R0 XD_
             LD R1 ZD_
             ST R0 C_X
@@ -90,11 +91,12 @@ HALT
 
 ; control flags
 BLOCK_TYPE .FILL #1 ; the block type to use if its not random
-USE_RANDOM_BLOCKS_FLAG .FILL #1 ; if we randomise each block placed
+USE_RANDOM_BLOCKS_FLAG .FILL #0 ; if we randomise each block placed
 BLOCK_RAND_BITMASK .FILL x00FF ; will use blocks from 0 to BLOCK_RAND_BITMASK
 EXCLUDE_WATER_AND_LAVA_FLAG .FILL #1 ; this removes water and lava, however it makes 12, 13, 14 and 15 twice as likely as any other block (since it changes water/lava into these)
-SPHERE_RADII .FILL #4
-TORUS_RADII .FILL #8
+SPHERE_RADII .FILL #5
+TORUS_RADII .FILL #100
+TORUS_SENSITIVITY .FILL #100
 
 RADII_2 .FILL #0
 RADII_SQUARED .FILL #0
@@ -129,7 +131,7 @@ MULTIPLY_B .FILL #0
 MULTIPLY_RESULT .FILL #0
 
 RAND_SEED .FILL #47935
-RAND_MULT .FILL x32D1
+RAND_MULT .FILL xF5
 RAND_ADD .FILL xEA79
 ABS_MASK .FILL x7FFF
 
@@ -344,11 +346,10 @@ RET
 RAND .FILL #0
     ST R7 RAND_RET
 
-
     LD R0 RAND_SEED
     LD R1 RAND_MULT
-    ST R0 MULTIPLY_A
-    ST R1 MULTIPLY_B
+    ST R1 MULTIPLY_A
+    ST R0 MULTIPLY_B
     JSR MULTIPLY
 
     LD R0 MULTIPLY_RESULT

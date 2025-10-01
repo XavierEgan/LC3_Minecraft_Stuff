@@ -88,11 +88,11 @@ BRzp LOOPX
 
 HALT
 
-RADII .FILL #10 ; radii of the circle
-BLOCK_TYPE .FILL #1 ; type of block to use if its not random
+RADII .FILL #50 ; radii of the circle
+BLOCK_TYPE .FILL #0 ; type of block to use if its not random
 BLOCK_RAND_BITMASK .FILL x00FF ; will use blocks from 0 to BLOCK_RAND_BITMASK
 USE_RANDOM_BLOCKS_FLAG .FILL #0 ; if we randomise each block placed
-EXCLUDE_WATER_AND_LAVA_FLAG .FILL #0 ; this removes water and lava, however it makes 12, 13, 14 and 15 twice as likely as any other block (since it changes water/lava into these)
+EXCLUDE_WATER_AND_LAVA_FLAG .FILL #1 ; this removes water and lava, however it makes 12, 13, 14 and 15 twice as likely as any other block (since it changes water/lava into these)
 
 
 RADII_2 .FILL #0
